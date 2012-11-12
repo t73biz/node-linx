@@ -1,0 +1,112 @@
+doctype 5
+html
+	head
+		title= title
+		style
+			*
+			{
+				color: #000 !important;
+				padding: 0;
+				margin: 0;
+			}
+			
+			a, a span
+			{
+				color: blue !important;
+			}
+			
+			#get-page
+			{
+				background-color: #FFF;
+				border: 3px #CCC solid;
+				left: 0;
+				position: fixed;
+				top: 0;
+				width: 100%;
+				z-index: 10000;
+			}
+			
+			#title
+			{
+				display: inline;
+				width: 10%;
+			}
+
+			#address
+			{
+				width: 80%;
+			}
+
+			#go
+			{
+				width: 10%;
+			}
+			
+			#pageContent
+			{
+				margin: 40px;
+				max-width: 960px;
+			}
+
+			#pageContent *
+			{
+				font-family: monospace;
+				text-align: justify;
+			}
+
+		script(src='/socket.io/socket.io.js')
+		script(src='http://code.jquery.com/jquery-1.8.1.min.js')
+		script
+			var socket = io.connect('http://localhost:3000');
+			socket.on(
+				'hello',
+				function (data)
+				{
+					console.log(data);
+					$('#pageContent').html(data.hello);
+				}
+			);
+			
+			function message( msg )
+			{
+				$('#pageContent').html(msg);
+			}
+
+			socket.on(
+				'page-response',
+				function (data)
+				{
+					message(data.response);
+				}
+			);
+
+			socket.on(
+				'error',
+				function (e)
+				{
+					message(e.error ? e : 'A unknown error occurred');
+				}
+			);
+
+			$(
+				function ()
+				{
+					$('#go').click(
+						function ()
+						{
+							socket.emit(
+								'page-request',
+								{
+									host : $('#address').val()
+								}
+							);
+							return false;
+						}
+					);
+				}
+			);
+	body
+
+		block addressBar
+
+		block content
