@@ -53,12 +53,28 @@ io.sockets.on(
 						}
 						else
 						{
-							socket.emit(
-								'page-response',
-								{
-									response : parse(body)
-								}
-							);
+							jsdom.env({
+								html	: body,
+								scripts : ['http://code.jquery.com/jquery-1.8.1.min.js'],
+								done	: function (error, window)
+										{
+											if(error)
+											{
+												console.log(error);
+											}
+											else
+											{
+												var $ = window.jQuery;
+												$('img, select, input, button, iframe, script').remove();
+												socket.emit(
+													'page-response',
+													{
+														response : $('body').html()
+													}
+												);
+											}
+										}
+							});
 	  					}
 					}
 				);
@@ -66,27 +82,3 @@ io.sockets.on(
 		);
 	}
 );
-
-var parse = function(body)
-{
-	var content = '';
-
-	jsdom.env({
-		html	: body,
-		scripts : ['http://code.jquery.com/jquery-1.8.1.min.js'],
-		done	: function (error, window)
-				{
-					if(error)
-					{
-						console.log(error);
-					}
-					else
-					{
-						var $ = window.jQuery;
-						$('img, select, input, button, iframe, script').remove();
-						content = $('body').html();
-						return content;
-					}
-				}
-	});
-}
