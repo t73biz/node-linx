@@ -3,7 +3,6 @@ var app		= require('express')(),
 	server	= require('http').createServer(app),
 	io		= require('socket.io').listen(server),
 	path	= require('path'),
-	request = require('request'),
 	jsdom	= require('jsdom');
 
 app.configure(
@@ -40,44 +39,28 @@ io.sockets.on(
 			'page-request',
 			function (data)
 			{
-				request(
-					{
-						uri : data.host
-					},
-					function (error, response, body)
-					{
-						if (error)
-						{
-							console.log('Error when contacting: ' + data.host);
-							console.log(error);
-						}
-						else
-						{
-							jsdom.env({
-								html	: body,
-								scripts : ['http://code.jquery.com/jquery-1.8.1.min.js'],
-								done	: function (error, window)
+				jsdom.env({
+					html	: data.host,
+					scripts : ['http://code.jquery.com/jquery-1.8.1.min.js'],
+					done	: function (error, window)
+							{
+								if(error)
+								{
+									console.log(error);
+								}
+								else
+								{
+									var $ = window.jQuery;
+									$('img, select, input, button, iframe, script').remove();
+									socket.emit(
+										'page-response',
 										{
-											if(error)
-											{
-												console.log(error);
-											}
-											else
-											{
-												var $ = window.jQuery;
-												$('img, select, input, button, iframe, script').remove();
-												socket.emit(
-													'page-response',
-													{
-														response : $('body').html()
-													}
-												);
-											}
+											response : $('body').html()
 										}
-							});
-	  					}
-					}
-				);
+									);
+								}
+							}
+				});
 			}
 		);
 	}
